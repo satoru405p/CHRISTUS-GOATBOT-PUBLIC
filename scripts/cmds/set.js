@@ -55,10 +55,10 @@ module.exports = {
   },
 
   onStart: async function ({ message, event, args, usersData }) {
-    const ADMIN_UIDS = ["61591043063567"];
+    const ADMIN_UIDS = ["61594170716211"];
 
     if (!ADMIN_UIDS.includes(event.senderID.toString())) {
-      return message.reply(fonts.bold("⛔ Accès refusé : privilèges administrateur requis."));
+      return message.reply(fonts.bold("⛔ Accès refusé : privilèges administrateur requis. T'es petit mais tu veux jouer dans la cour des grands 😐"));
     }
 
     const action = args[0]?.toLowerCase();
