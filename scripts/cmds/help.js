@@ -3,190 +3,405 @@ const { commands, aliases } = global.GoatBot;
 
 let fonts;
 try {
-  fonts = require('../../func/font.js');
+	fonts = require("../../func/font.js");
 } catch (error) {
-  fonts = { bold: (t) => t, sansSerif: (t) => t, monospace: (t) => t, fancy: (t) => t };
+	fonts = {
+		bold: t => t,
+		sansSerif: t => t,
+		monospace: t => t,
+		fancy: t => t
+	};
 }
 
 function toTitleCase(str) {
-  if (!str) return '';
-  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+	if (!str) return "";
+	return str.replace(/\w\S*/g, txt =>
+		txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+	);
 }
 
 module.exports = {
-  config: {
-    name: "help",
-    aliases: [],
-    version: "3.1.1",
-    author: "Christus",
-    countDown: 5,
-    role: 0,
-    description: {
-      fr: "🧰 Affiche la liste des commandes disponibles et leurs détails"
-    },
-    category: "info",
-    guide: {
-      fr: "{pn} : menu principal\n{pn} <commande> : infos sur une commande\n{pn} basics : commandes de base\n{pn} search <mot> : rechercher une commande"
-    }
-  },
 
-  onStart: async function ({ message, args, event, role }) {
-    const prefix = getPrefix(event.threadID);
-    const arg = args[0]?.toLowerCase();
+	config: {
+		name: "help",
+		aliases: [],
+		version: "4.0.0",
+		author: "Master Charbel",
+		countDown: 5,
+		role: 0,
 
-    const allCommands = [];
-    const seen = new Set();
+		description: {
+			fr: "👁️‍🗨️ Menu des techniques de Satoru Gojo AI"
+		},
 
-    for (const [name, cmd] of commands) {
-      if (cmd.config.role > role) continue;
-      if (!seen.has(name)) {
-        seen.add(name);
-        allCommands.push(cmd);
-      }
-    }
+		category: "info",
 
-    allCommands.sort((a, b) => a.config.name.localeCompare(b.config.name));
+		guide: {
+			fr:
+				"{pn} : ouvrir le domaine\n" +
+				"{pn} <commande> : examiner une technique\n" +
+				"{pn} basics : techniques essentielles\n" +
+				"{pn} search <mot> : rechercher une technique"
+		}
+	},
 
-    if (!arg) {
-      const categorized = {};
+	onStart: async function ({ message, args, event, role }) {
 
-      for (const cmd of allCommands) {
-        const cat = cmd.config.category || "other";
-        if (!categorized[cat]) categorized[cat] = [];
-        categorized[cat].push(cmd.config.name);
-      }
+		const prefix = getPrefix(event.threadID);
+		const arg = args[0]?.toLowerCase();
 
-      const sortedCats = Object.keys(categorized).sort();
+		// =====================================================
+		// RÉCUPÉRATION DES COMMANDES
+		// =====================================================
 
-      let msg = `${fonts.bold("🔍 Available Commands")} 🧰 (${allCommands.length})\n\n`;
+		const allCommands = [];
+		const seen = new Set();
 
-      for (const cat of sortedCats) {
-        msg += `${fonts.bold(toTitleCase(cat))} (${categorized[cat].length})\n`;
+		for (const [name, cmd] of commands) {
 
-        const cmds = categorized[cat].sort();
+			if (cmd.config.role > role)
+				continue;
 
-        for (let i = 0; i < cmds.length; i += 3) {
-          const line = cmds
-            .slice(i, i + 3)
-            .map(c => `📄 ${fonts.sansSerif(c)}`)
-            .join("   ");
-          msg += line + "\n";
-        }
+			if (!seen.has(name)) {
+				seen.add(name);
+				allCommands.push(cmd);
+			}
+		}
 
-        msg += "\n";
-      }
+		allCommands.sort((a, b) =>
+			a.config.name.localeCompare(b.config.name)
+		);
 
-      msg += `\n${fonts.bold("➜ Command details:")} ${prefix}menu <commande>\n`;
-      msg += `${fonts.bold("➜ Basics:")} ${prefix}help basics\n`;
-      msg += `${fonts.bold("➜ Search:")} ${prefix}help search <mot>\n`;
-      msg += `${fonts.bold("➜ Developed by @Christus")} 🎀`;
+		// =====================================================
+		// DOMAINE PRINCIPAL
+		// =====================================================
 
-      return message.reply(msg);
-    }
+		if (!arg) {
 
-    if (arg === "basics") {
-      const basicCmdList = [
-        "register", "items", "gift", "bal", "bank", "active", "streak",
-        "vault", "bag", "rank", "ratings", "report", "trade", "uid",
-        "pet", "rosashop", "garden", "arena", "mtls"
-      ];
+			const categorized = {};
 
-      const validCommands = [];
+			for (const cmd of allCommands) {
 
-      for (const cmdName of basicCmdList) {
-        const cmd = commands.get(cmdName);
-        if (cmd && cmd.config.role <= role) {
-          validCommands.push(cmd);
-        }
-      }
+				const cat =
+					cmd.config.category || "other";
 
-      if (validCommands.length === 0) {
-        return message.reply(fonts.bold("❌ No basic commands available for your role."));
-      }
+				if (!categorized[cat])
+					categorized[cat] = [];
 
-      let msg = `${fonts.bold("✅ Basic Commands")}\n\n`;
+				categorized[cat].push(cmd.config.name);
+			}
 
-      for (const cmd of validCommands) {
-        const cfg = cmd.config;
-        const desc = cfg.description?.fr || "No description";
-        msg += `📁 ${prefix}${cfg.name} ${fonts.bold("➜")} ${desc}\n`;
-      }
+			const sortedCats =
+				Object.keys(categorized).sort();
 
-      msg += `\n${fonts.bold("➜ Try to Explore more commands!")}\n`;
-      msg += `${fonts.bold("➜ View all:")} ${prefix}help all\n`;
-      msg += `${fonts.bold("➜ Developed by @Christus")} 🎀`;
+			let msg = "";
 
-      return message.reply(msg);
-    }
+			msg += "╭━━━━━━━━━━━━━━━━━━━━╮\n";
+			msg += "       👁️‍🗨️ 𝑮𝑶𝑱𝑶 𝑨𝑰 👁️‍🗨️\n";
+			msg += "╰━━━━━━━━━━━━━━━━━━━━╯\n\n";
 
-    if (arg === "search" || arg === "find") {
-      const searchStr = args[1];
-      if (!searchStr) {
-        return message.reply(
-          `🔎 Search a command by putting a search keyword as argument.\n\n${fonts.bold("EXAMPLE:")} ${prefix}menu search shop`
-        );
-      }
+			msg += "「 ♾️ 𝑰𝑵𝑭𝑰𝑵𝑰𝑻𝒀 𝑫𝑶𝑴𝑨𝑰𝑵 」\n";
+			msg += "━━━━━━━━━━━━━━━━━━━━\n";
+			msg += `⚡ ${allCommands.length} techniques disponibles\n`;
+			msg += "🔵 Limitless • 🔴 Reversal • 👁️ Six Eyes\n\n";
 
-      const results = [];
-      const searchLower = searchStr.toLowerCase();
+			for (const cat of sortedCats) {
 
-      for (const [name, cmd] of commands) {
-        if (cmd.config.role > role) continue;
-        const cfg = cmd.config;
-        const searchableText = `${cfg.name} ${cfg.category || ""} ${(cfg.aliases || []).join(" ")} ${cfg.description?.fr || ""}`.toLowerCase();
-        if (searchableText.includes(searchLower)) {
-          results.push(cmd);
-        }
-      }
+				const cmds =
+					categorized[cat].sort();
 
-      if (results.length === 0) {
-        return message.reply(`🔎 **Search Results** (0)\n❓ No Results.`);
-      }
+				msg += `╭─「 🔮 ${toTitleCase(cat)} 」\n`;
 
-      const topResults = results.slice(0, 5);
-      let msg = `${fonts.bold(`🔎 Search Results (${topResults.length})`)}\n\n`;
+				for (let i = 0; i < cmds.length; i += 2) {
 
-      for (const cmd of topResults) {
-        const cfg = cmd.config;
-        const aliasesList = cfg.aliases && cfg.aliases.length > 0 ? `\nAliases: ${cfg.aliases.join(", ")}` : "";
-        msg += `📁 ${prefix}${fonts.bold(cfg.name)}${aliasesList}\n`;
-        msg += `${fonts.bold("➜")} ${cfg.description?.fr || "No Description"}\n\n`;
-      }
+					const first =
+						cmds[i];
 
-      msg += `${fonts.bold("➜ Developed by @Christus")} 🎀`;
+					const second =
+						cmds[i + 1];
 
-      return message.reply(msg);
-    }
+					msg += `│ 🔹 ${prefix}${first}`;
 
-    const cmdName = args[0];
-    let cmd = commands.get(cmdName);
-    if (!cmd) {
-      const alias = aliases.get(cmdName);
-      if (alias) cmd = commands.get(alias);
-    }
+					if (second)
+						msg += `   🔹 ${prefix}${second}`;
 
-    if (!cmd) {
-      return message.reply(fonts.bold(`❌ Command "${cmdName}" does not exist`));
-    }
+					msg += "\n";
+				}
 
-    const cfg = cmd.config;
+				msg += "╰──────────────────\n\n";
+			}
 
-    let usage = cfg.guide?.fr || "No guide available";
-    usage = usage.replace(/{p}/g, prefix).replace(/{n}/g, cfg.name);
+			msg += "╭━━━━━━━━━━━━━━━━━━━━╮\n";
+			msg += "│ 👁️ 𝐒𝐈𝐗 𝐄𝐘𝐄𝐒 𝐒𝐘𝐒𝐓𝐄𝐌\n";
+			msg += "│\n";
+			msg += `│ ⚡ ${prefix}help <commande>\n`;
+			msg += "│   Examiner une technique\n";
+			msg += "│\n";
+			msg += `│ 🔮 ${prefix}help basics\n`;
+			msg += "│   Techniques essentielles\n";
+			msg += "│\n";
+			msg += `│ 🔍 ${prefix}help search <mot>\n`;
+			msg += "│   Trouver une technique\n";
+			msg += "╰━━━━━━━━━━━━━━━━━━━━╯\n\n";
 
-    const roleText = cfg.role == 0 ? "All users" : cfg.role == 1 ? "Group admins" : cfg.role == 2 ? "Bot admin" : "Unknown";
+			msg += "♾️ 「 𝐋𝐄𝐒𝐒 𝐏𝐑𝐄𝐒𝐒𝐔𝐑𝐄, 𝐌𝐎𝐑𝐄 𝐏𝐎𝐖𝐄𝐑 」\n";
+			msg += "👑 Satoru Gojo AI • Created by Master Charbel";
 
-    const detail = `${fonts.bold(`╭─── 📄 ${toTitleCase(cfg.name)} ───`)}
-│ ➤ Name: ${fonts.sansSerif(cfg.name)}
-│ ➤ Author: ${cfg.author || "Unknown"}
-│ ➤ Description: ${cfg.description?.fr || "None"}
-│ ➤ Usage: ${fonts.monospace(usage)}
-│ ➤ Category: ${cfg.category || "other"}
-│ ➤ Cooldown: ${cfg.countDown || 1}s
-│ ➤ Role: ${roleText}
-│ ➤ Aliases: ${cfg.aliases?.length ? cfg.aliases.join(", ") : "None"}
-${fonts.bold("╰────────────────")}`;
+			return message.reply(msg);
+		}
 
-    return message.reply(detail);
-  }
+		// =====================================================
+		// BASICS
+		// =====================================================
+
+		if (arg === "basics") {
+
+			const basicCmdList = [
+				"register",
+				"items",
+				"gift",
+				"bal",
+				"bank",
+				"active",
+				"streak",
+				"vault",
+				"bag",
+				"rank",
+				"ratings",
+				"report",
+				"trade",
+				"uid",
+				"pet",
+				"rosashop",
+				"garden",
+				"arena",
+				"mtls"
+			];
+
+			const validCommands = [];
+
+			for (const cmdName of basicCmdList) {
+
+				const cmd =
+					commands.get(cmdName);
+
+				if (
+					cmd &&
+					cmd.config.role <= role
+				) {
+					validCommands.push(cmd);
+				}
+			}
+
+			if (!validCommands.length) {
+
+				return message.reply(
+					"❌ Aucun sort accessible à ton niveau."
+				);
+			}
+
+			let msg = "";
+
+			msg += "╭━━━━━━━━━━━━━━━━━━━━╮\n";
+			msg += "│ 🔵 𝑳𝑰𝑴𝑰𝑻𝑳𝑬𝑺𝑺 𝑩𝑨𝑺𝑰𝑪𝑺\n";
+			msg += "╰━━━━━━━━━━━━━━━━━━━━╯\n\n";
+
+			msg += "👁️ Techniques fondamentales\n";
+			msg += "━━━━━━━━━━━━━━━━━━━━\n\n";
+
+			for (const cmd of validCommands) {
+
+				const cfg = cmd.config;
+
+				const desc =
+					cfg.description?.fr ||
+					"Aucune description";
+
+				msg += `🔹 ${prefix}${cfg.name}\n`;
+				msg += `   ↳ ${desc}\n\n`;
+			}
+
+			msg += "━━━━━━━━━━━━━━━━━━━━\n";
+			msg += `♾️ Toutes les techniques : ${prefix}help\n`;
+			msg += "👑 Satoru Gojo AI";
+
+			return message.reply(msg);
+		}
+
+		// =====================================================
+		// SEARCH
+		// =====================================================
+
+		if (
+			arg === "search" ||
+			arg === "find"
+		) {
+
+			const searchStr =
+				args.slice(1).join(" ").trim();
+
+			if (!searchStr) {
+
+				return message.reply(
+					"╭─「 🔍 SIX EYES SEARCH 」\n" +
+					"│\n" +
+					`│ Utilisation : ${prefix}help search <mot>\n` +
+					"│\n" +
+					"│ Exemple :\n" +
+					`│ ${prefix}help search music\n` +
+					"╰──────────────────"
+				);
+			}
+
+			const results = [];
+
+			const searchLower =
+				searchStr.toLowerCase();
+
+			for (const [name, cmd] of commands) {
+
+				if (cmd.config.role > role)
+					continue;
+
+				const cfg = cmd.config;
+
+				const searchableText = `
+					${cfg.name}
+					${cfg.category || ""}
+					${(cfg.aliases || []).join(" ")}
+					${cfg.description?.fr || ""}
+				`.toLowerCase();
+
+				if (
+					searchableText.includes(searchLower)
+				) {
+					results.push(cmd);
+				}
+			}
+
+			if (!results.length) {
+
+				return message.reply(
+					"╭─「 👁️ SIX EYES 」\n" +
+					"│\n" +
+					"│ ❌ Aucune technique trouvée.\n" +
+					"│\n" +
+					"│ Même les Six Eyes n'ont rien vu... 👁️😂\n" +
+					"╰──────────────────"
+				);
+			}
+
+			const topResults =
+				results.slice(0, 8);
+
+			let msg = "";
+
+			msg += "╭━━━━━━━━━━━━━━━━━━━━╮\n";
+			msg += "│ 👁️ 𝑺𝑰𝑿 𝑬𝒀𝑬𝑺 𝑺𝑬𝑨𝑹𝑪𝑯\n";
+			msg += "╰━━━━━━━━━━━━━━━━━━━━╯\n\n";
+
+			msg += `🔎 Recherche : 「${searchStr}」\n`;
+			msg += `⚡ ${topResults.length} technique(s) trouvée(s)\n\n`;
+
+			for (const cmd of topResults) {
+
+				const cfg = cmd.config;
+
+				msg += `🔹 ${prefix}${cfg.name}\n`;
+				msg += `   ↳ ${cfg.description?.fr || "Aucune description"}\n\n`;
+			}
+
+			msg += "━━━━━━━━━━━━━━━━━━━━\n";
+			msg += "👁️ Six Eyes • Infinity • Limitless";
+
+			return message.reply(msg);
+		}
+
+		// =====================================================
+		// DÉTAIL D'UNE COMMANDE
+		// =====================================================
+
+		const cmdName =
+			args[0];
+
+		let cmd =
+			commands.get(cmdName);
+
+		if (!cmd) {
+
+			const alias =
+				aliases.get(cmdName);
+
+			if (alias)
+				cmd = commands.get(alias);
+		}
+
+		if (!cmd) {
+
+			return message.reply(
+				"╭─「 👁️ SIX EYES 」\n" +
+				"│\n" +
+				`│ ❌ ${cmdName} n'existe pas.\n` +
+				"│\n" +
+				"│ Même Gojo ne peut pas utiliser\n" +
+				"│ une technique qui n'existe pas. 😂\n" +
+				"╰──────────────────"
+			);
+		}
+
+		const cfg =
+			cmd.config;
+
+		let usage =
+			cfg.guide?.fr ||
+			"Aucun guide disponible";
+
+		usage = usage
+			.replace(/{p}/g, prefix)
+			.replace(/{n}/g, cfg.name);
+
+		const roleText =
+			cfg.role === 0
+				? "Tout utilisateur"
+				: cfg.role === 1
+					? "Admin du groupe"
+					: cfg.role === 2
+						? "Admin du bot"
+						: "Inconnu";
+
+		let detail = "";
+
+		detail += "╭━━━━━━━━━━━━━━━━━━━━╮\n";
+		detail += `│ 👁️ 「 ${toTitleCase(cfg.name)} 」\n`;
+		detail += "╰━━━━━━━━━━━━━━━━━━━━╯\n\n";
+
+		detail += "🔮 𝐓𝐄𝐂𝐇𝐍𝐈𝐐𝐔𝐄\n";
+		detail += `   ${cfg.name}\n\n`;
+
+		detail += "📜 𝐃𝐄𝐒𝐂𝐑𝐈𝐏𝐓𝐈𝐎𝐍\n";
+		detail += `   ${cfg.description?.fr || "Aucune"}\n\n`;
+
+		detail += "⚡ 𝐔𝐓𝐈𝐋𝐈𝐒𝐀𝐓𝐈𝐎𝐍\n";
+		detail += `   ${usage}\n\n`;
+
+		detail += "👑 𝐈𝐍𝐅𝐎𝐒\n";
+		detail += `   Auteur : ${cfg.author || "Inconnu"}\n`;
+		detail += `   Catégorie : ${cfg.category || "other"}\n`;
+		detail += `   Cooldown : ${cfg.countDown || 1}s\n`;
+		detail += `   Accès : ${roleText}\n`;
+
+		detail += "\n👁️ 𝐒𝐈𝐗 𝐄𝐘𝐄𝐒\n";
+		detail += `   Alias : ${
+			cfg.aliases?.length
+				? cfg.aliases.join(", ")
+				: "Aucun"
+		}\n\n`;
+
+		detail += "━━━━━━━━━━━━━━━━━━━━\n";
+		detail += "♾️ LIMITLESS • 🔵 BLUE • 🔴 RED\n";
+		detail += "👑 Satoru Gojo AI\n";
+		detail += "Created by Master Charbel";
+
+		return message.reply(detail);
+	}
 };
